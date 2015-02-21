@@ -1,7 +1,7 @@
 package monitor
 
 import (
-	"errors"
+	"fmt"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -24,7 +24,7 @@ type LogLine struct {
 func LogParse(line string) (*LogLine, error) {
 	results := extract.FindStringSubmatch(line)
 	if results == nil {
-		return nil, errors.New("Failed to parse line.")
+		return nil, fmt.Errorf("Failed to parse line: %s", line)
 	}
 
 	uri, err := url.Parse(results[4])
