@@ -2,8 +2,8 @@ package monitor
 
 import (
 	"container/ring"
-	"sync"
 	"log"
+	"sync"
 )
 
 // Our goal is to retain data only for the maximum lifetime required to
@@ -38,10 +38,11 @@ func (minuend *Stat) Subtract(subtrahend *Stat) {
 	}
 }
 
+// Note: any attempts to read running-sum statistics must take Mtx first.
 type RingBufferStats struct {
-	Sum *Stat
+	Sum     *Stat
 	buckets *ring.Ring
-	mtx sync.Mutex
+	Mtx     sync.Mutex
 }
 
 // Given a size and a zeroed instance of a stats object, populate the ring.
@@ -54,14 +55,14 @@ func NewRing(size int) RingBufferStats {
 		r = r.Next()
 	}
 	return RingBufferStats{
-		Sum: NewEmptyStat(),
+		Sum:     NewEmptyStat(),
 		buckets: r,
 	}
 }
 
 func (r *RingBufferStats) Rotate() {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
+	r.Mtx.Lock()
+	defer r.Mtx.Unlock()
 
 	// Remove the expiring bucket's stats from the running totals.
 	r.Sum.Subtract(r.buckets.Next().Value.(*Stat))
@@ -74,8 +75,8 @@ func (r *RingBufferStats) Rotate() {
 // Takes required locks, then applies the mutation operation to running total
 // and to the current bucket.
 func (r *RingBufferStats) Mutate(f func(*Stat)) {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
+	r.Mtx.Lock()
+	defer r.Mtx.Unlock()
 
 	f(r.Sum)
 	f(r.buckets.Value.(*Stat))

@@ -5,8 +5,8 @@ import "testing"
 func TestRingBufferStats(t *testing.T) {
 	cases := []struct {
 		rotateBefore bool
-		increment   int64
-		sum         int64
+		increment    int64
+		sum          int64
 	}{
 		{false, 0, 0}, // {0, {0, 0, 0}}
 		{false, 1, 1}, // {1, {1, 0, 0}}
@@ -28,7 +28,7 @@ func TestRingBufferStats(t *testing.T) {
 		if c.rotateBefore {
 			r.Rotate()
 		}
-		r.Mutate(func (v *Stat) {
+		r.Mutate(func(v *Stat) {
 			if sum := v.Map["test"] + c.increment; sum != 0 {
 				v.Map["test"] = sum
 			}
