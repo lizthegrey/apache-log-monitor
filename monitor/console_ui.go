@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jroimartin/gocui"
 	"github.com/nsf/termbox-go"
+	"time"
 )
 
 func layout(g *gocui.Gui) error {
@@ -72,7 +73,7 @@ func (c *Console) Loop() error {
 			return
 		}
 		for line := range c.log {
-			fmt.Fprintln(v, line)
+			fmt.Fprintf(v, "[%s] %s\n", time.Now().Format(time.UnixDate), line)
 			c.g.Flush()
 		}
 		fmt.Fprintln(v, "No more log entries.")
