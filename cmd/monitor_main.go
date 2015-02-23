@@ -62,6 +62,10 @@ func main() {
 
 				// Unconditionally increment the traffic stats mapping.
 				trafficStats.Mutate(func(s *monitor.Stat) { s.Map["all"] += 1 })
+
+				// We want to record: QPS, bytes/sec, non-200s/sec, popular URL paths over status interval
+				// (cue "what do you want to monitor about a webserver?")
+				// We also want to track the scalar value of average processing delay between log entry arriving and us processing.
 			} else {
 				consoleLog <- err.Error()
 			}
@@ -74,21 +78,19 @@ func main() {
 		high := monitor.ThresholdAlert{
 			Threshold:    *highTrafficThresholdQps * *trafficWindowS,
 			TriggerAbove: true,
-			Stats:        &trafficStats,
-			StatsKey:     "all",
-			Output:       consoleLog,
 		}
 		low := monitor.ThresholdAlert{
 			Threshold:    *lowTrafficThresholdQps * *trafficWindowS,
 			TriggerAbove: false,
-			Stats:        &trafficStats,
-			StatsKey:     "all",
-			Output:       consoleLog,
 		}
 		for {
 			time.Sleep(time.Duration(*alertEvalS) * time.Second)
-			high.Evaluate()
-			low.Evaluate()
+			if msg := high.Evaluate(trafficStats.SumLookup("all")); msg != nil {
+				consoleLog <- *msg
+			}
+			if msg := low.Evaluate(trafficStats.SumLookup("all")); msg != nil {
+				consoleLog <- *msg
+			}
 		}
 	}()
 

@@ -10,7 +10,10 @@ import (
 
 func TestParsing(t *testing.T) {
 	cases := []struct {
-		in   string
+		// Arguments
+		in string
+
+		// Postconditions
 		want *LogLine
 		err  error
 	}{

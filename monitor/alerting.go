@@ -13,41 +13,34 @@ import (
 type ThresholdAlert struct {
 	Threshold    int64
 	TriggerAbove bool // False if we should trigger if we drop below.
-	lastFired    *time.Time
-	Stats        *RingBufferStats
-	StatsKey     string
-	Output       chan string
+	firstFired   *time.Time
 }
 
-func (a *ThresholdAlert) Evaluate() {
-	a.Stats.Mtx.Lock()
-	total := a.Stats.Sum.Map[a.StatsKey]
-	a.Stats.Mtx.Unlock()
-
+func (a *ThresholdAlert) Evaluate(observed int64) *string {
 	var firing bool
 	var conditionString string
 	if a.TriggerAbove {
-		firing = total >= a.Threshold
+		firing = observed >= a.Threshold
 		conditionString = "High"
 	} else {
-		firing = total <= a.Threshold
+		firing = observed <= a.Threshold
 		conditionString = "Low"
 	}
 
 	now := time.Now()
-	if a.lastFired == nil && firing {
+	if a.firstFired == nil && firing {
 		// We've newly started firing.
-		a.lastFired = &now
-		msg := fmt.Sprintf("%s traffic generated an alert - hits = %d, triggered at %s", conditionString, total, a.lastFired.Format(time.UnixDate))
-		a.Output <- msg
-		return
+		a.firstFired = &now
+		msg := fmt.Sprintf("%s traffic generated an alert - hits = %d, triggered at %s", conditionString, observed, a.firstFired.Format(time.UnixDate))
+		return &msg
 	}
 
-	if a.lastFired != nil && !firing {
+	if a.firstFired != nil && !firing {
 		// We've recovered.
-		msg := fmt.Sprintf("%s traffic alert has recovered - hits = %d, last triggered at %s", conditionString, total, a.lastFired.Format(time.UnixDate))
-		a.Output <- msg
-		a.lastFired = nil
-		return
+		msg := fmt.Sprintf("%s traffic alert has recovered - hits = %d, last triggered at %s", conditionString, observed, a.firstFired.Format(time.UnixDate))
+		a.firstFired = nil
+		return &msg
 	}
+
+	return nil
 }

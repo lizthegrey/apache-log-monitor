@@ -81,3 +81,11 @@ func (r *RingBufferStats) Mutate(f func(*Stat)) {
 	f(r.Sum)
 	f(r.buckets.Value.(*Stat))
 }
+
+// Takes required locks, then retrieves the current Sum's value for the key.
+func (r *RingBufferStats) SumLookup(key string) int64 {
+	r.Mtx.Lock()
+	defer r.Mtx.Unlock()
+
+	return r.Sum.Map[key]
+}

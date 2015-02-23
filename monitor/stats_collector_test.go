@@ -4,9 +4,12 @@ import "testing"
 
 func TestRingBufferStats(t *testing.T) {
 	cases := []struct {
+		// Arguments
 		rotateBefore bool
 		increment    int64
-		sum          int64
+
+		// Postconditions
+		sum int64
 	}{
 		{false, 0, 0}, // {0, {0, 0, 0}}
 		{false, 1, 1}, // {1, {1, 0, 0}}
