@@ -17,7 +17,7 @@ var pollIntervalMs = flag.Int64("poll_interval_ms", 250, "The number of millisec
 var bucketSizeS = flag.Int64("bucket_size_s", 1, "The number of seconds of granularity for data collection.")
 
 var statsEvalS = flag.Int64("stats_eval_s", 1, "The number of seconds between computation of current statistics.")
-var statsWindowS = flag.Int64("stats_window_s", 10, "The number of seconds for the sliding window for QPS alerts.")
+var statsWindowS = flag.Int64("stats_window_s", 10, "The number of seconds for the sliding window for statistics computation.")
 
 var alertEvalS = flag.Int64("alert_eval_s", 5, "The number of seconds between evaluation of alert conditions.")
 var highTrafficThresholdQps = flag.Int64("high_traffic_threshold_qps", 1, "The QPS value above which we will generate an alert.")
